@@ -5,15 +5,9 @@ Demonstrate using OpenGL to do something intersting.
 import math
 
 from numpy import random, sin, cos
-from OpenGL.GL import glClear, glMatrixMode, glLoadIdentity, glBegin
-from OpenGL.GL import glVertex3f, glColor4f, glViewport, glEnd, glFlush
-from OpenGL.GL import glOrtho, glEnable, glClearColor, glClearDepth
+from OpenGL.GL import * 
+from OpenGL.GLUT import *
 
-from OpenGL.GL import GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_MODELVIEW
-from OpenGL.GL import GL_TRIANGLE_FAN, GL_PROJECTION, GL_DEPTH_TEST
-
-from PyQt5.QtOpenGL import QGLWidget
-from PyQt5.QtWidgets import QMainWindow, QApplication
 import os
 import sys
 import re
@@ -41,14 +35,13 @@ def init_points(count):
     for i in range(0, count):
         generate_point()
 
-class ViewerWidget(QGLWidget):
+class ViewerWidget():
     '''
     Widget for drawing 3D geometry
     '''
 
-    def __init__(self, parent):
-        QGLWidget.__init__(self, parent)
-        self.setMinimumSize(WIDTH, HEIGHT)
+    def __init__(self):
+        pass
 
     def iterate(self):
         xaccum = 0
@@ -61,8 +54,6 @@ class ViewerWidget(QGLWidget):
         for point in points:
             point['x'] = point['x'] * 0.995 + xaccum  * 0.005 + point['r'] - 0.5
             point['y'] = point['y'] * 0.995 + yaccum  *  0.005 + point['g'] - 0.5
-        self.update()
-
 
     def paintGL(self):
         '''
@@ -113,7 +104,6 @@ class ViewerWidget(QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glOrtho(0.0, WIDTH, 0.0, HEIGHT, 0.0, 640.0)
-        self.update()
 
 
     def initializeGL(self):
@@ -141,17 +131,8 @@ class ViewerWidget(QGLWidget):
             points.append({
                 'x':pos.x(), 'y':HEIGHT - pos.y(),
                 'r':0.1, 'g':0.5, 'b':0.1, 'wide':WIDTH})
-        self.update()
-
-class ViewerWidgetDemo(QMainWindow):
-
-    def __init__(self):
-        QMainWindow.__init__(self)
-        widget = ViewerWidget(self)
-        self.setCentralWidget(widget)
 
 if __name__ == '__main__':
-    app = QApplication(['Voronoi Segementation Demo'])
     print("")
     print("     *****")
     print("     Voronoi Segementation Demo")
@@ -160,10 +141,19 @@ if __name__ == '__main__':
     print("     *****")
     print("")
 
-    window = ViewerWidgetDemo()
-    window.show()
+    vor = ViewerWidget()
+
+    glutInit() # Initialize a glut instance which will allow us to customize our window
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH) # Set the display mode to be colored
+    glutInitWindowSize(WIDTH, HEIGHT)   # Set the width and height of your window
+    glutInitWindowPosition(0, 0)   # Set the position at which this windows should appear
+    wind = glutCreateWindow("OpenGL Voronoi") # Give your window a title
+    glutDisplayFunc(vor.paintGL)  # Tell OpenGL to call the showScreen method continuously
+    glutIdleFunc(vor.paintGL)  # Tell OpenGL to call the showScreen method continuously
+
     pcount = 3 
     if len(sys.argv) > 1:
         pcount = int(sys.argv[1])
+    vor.initializeGL()
     init_points(pcount)
-    app.exec_()
+    glutMainLoop()  # 
