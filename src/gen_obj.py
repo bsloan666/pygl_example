@@ -2,6 +2,46 @@ import math
 import numpy as np
 import sys
 
+def make_tooth(pitch, depth):
+    points = []
+    indices = []
+    extent = pitch/2
+    chamfer = pitch/6
+    slope = pitch/18
+
+    for z in [0, depth]:
+        points.append([-extent, -extent - chamfer, z])
+        points.append([-extent, -extent, z])
+        points.append([-extent + chamfer, -extent + chamfer, z])
+        points.append([-extent + chamfer + slope, extent - chamfer * 2, z])
+        points.append([-extent + chamfer * 2, extent - chamfer, z])
+        points.append([0, extent - chamfer, z])
+        points.append([chamfer - slope, extent - chamfer * 2, z])
+        points.append([chamfer, -extent + chamfer, z])
+        points.append([chamfer * 2, -extent, z])
+        points.append([extent, -extent, z])
+        points.append([extent, -extent - chamfer, z])
+
+    off = 11
+    for idx in range(1, 11):
+        indices.append([idx + off, idx + 1 + off, idx + 1, idx])
+
+    indices.append([22, 12, 1, 11])
+
+    indices.append([1, 2, 10, 11])
+    indices.append([2, 3, 8, 9])
+    indices.append([3, 4, 7, 8])
+    indices.append([4, 5, 6, 7])
+
+    indices.append([22, 21, 13, 12])
+    indices.append([20, 19, 14, 13])
+    indices.append([19, 18, 15, 14])
+    indices.append([18, 17, 16, 15])
+
+    return points, indices
+
+
+
 def make_taurus(radius1, radius2, grain, arc_degrees=360):
     points = []
     texcoords = []
@@ -95,6 +135,7 @@ def scale(points, sx, sy, sz):
 
 def merge_geo(points1, indices1, texcoords1, points2, indices2, texcoords2):
     offset = len(points1)
+
     points1.extend(points2)
     texcoords1.extend(texcoords2)
 
@@ -123,22 +164,43 @@ def make_ess(major, minor):
     return merge_geo(points1, indices1, texcoords1, points2, indices2, texcoords2)
 
     
+def make_gear(radius, pitch, depth):
+    points = []
+    indices = []
+    num_teeth = int(math.pi * 2 * radius / pitch)
+
+    arc_per_tooth = 360 / num_teeth
+
+    for tooth in range(num_teeth):
+        new_points, new_indices = make_tooth(pitch, depth)
+        new_points = translate(new_points, 0, radius, 0)
+        new_points = rotate(new_points, arc_per_tooth * tooth, 2)
+
+        points, indices, _ = merge_geo(points, indices, [], new_points, new_indices, [])    
+
+    return points, indices
 
 
-def save_obj(fname, points, indices, texcoords):
+def save_obj(fname, points, indices, texcoords=None):
     with open(fname, "w") as handle:
         for point in points:
             handle.write("v {0} {1} {2}\n".format(point[0], point[1], point[2]))
-       
-        for uv in texcoords:
-            handle.write("vt {0} {1}\n".format(uv[0], uv[1]))
+        
+        if texcoords:
+            for uv in texcoords:
+                handle.write("vt {0} {1}\n".format(uv[0], uv[1]))
 
-        for index in indices:
-            handle.write("f {0}/{0} {1}/{1} {2}/{2} {3}/{3}\n".format(index[0], index[1], index[2], index[3]))
-
+            for index in indices:
+                handle.write("f {0}/{0} {1}/{1} {2}/{2} {3}/{3}\n".format(index[0], index[1], index[2], index[3]))
+        else:
+            for index in indices:
+                handle.write("f {0} {1} {2} {3}\n".format(index[0], index[1], index[2], index[3]))
 
 
 if __name__ == "__main__":
 
-    points, indices, texcoords = make_ess(20, 7)
-    save_obj(sys.argv[1], points, indices, texcoords) 
+    # points, indices, texcoords = make_ess(20, 7)
+    # save_obj(sys.argv[1], points, indices, texcoords) 
+
+    points, indices = make_gear(10, 3, 10)
+    save_obj(sys.argv[1], points, indices) 
