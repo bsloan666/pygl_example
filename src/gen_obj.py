@@ -6,21 +6,22 @@ def make_tooth(pitch, depth):
     points = []
     indices = []
     extent = pitch/2
+    yextent = pitch/3
     chamfer = pitch/6
-    slope = pitch/18
+    slope = pitch/24
 
     for z in [0, depth]:
-        points.append([-extent, -extent - chamfer, z])
-        points.append([-extent, -extent, z])
-        points.append([-extent + chamfer, -extent + chamfer, z])
-        points.append([-extent + chamfer + slope, extent - chamfer * 2, z])
-        points.append([-extent + chamfer * 2, extent - chamfer, z])
-        points.append([0, extent - chamfer, z])
-        points.append([chamfer - slope, extent - chamfer * 2, z])
-        points.append([chamfer, -extent + chamfer, z])
-        points.append([chamfer * 2, -extent, z])
-        points.append([extent, -extent, z])
-        points.append([extent, -extent - chamfer, z])
+        points.append([-extent, -yextent - chamfer, z])
+        points.append([-extent, -yextent, z])
+        points.append([-extent + chamfer, -yextent + chamfer, z])
+        points.append([-extent + chamfer + slope, yextent - chamfer * 2, z])
+        points.append([-extent + chamfer * 2, yextent - chamfer, z])
+        points.append([0, yextent - chamfer, z])
+        points.append([chamfer - slope, yextent - chamfer * 2, z])
+        points.append([chamfer, -yextent + chamfer, z])
+        points.append([chamfer * 2, -yextent, z])
+        points.append([extent, -yextent, z])
+        points.append([extent, -yextent - chamfer, z])
 
     off = 11
     for idx in range(1, 11):
